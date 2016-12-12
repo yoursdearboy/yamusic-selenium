@@ -11,6 +11,10 @@ class Song:
         self._lyrics = None
 
     @property
+    def id(self):
+        return self._id
+
+    @property
     def album(self):
         return self._album
 
@@ -19,10 +23,14 @@ class Song:
         return self._title
 
     @property
+    def link(self):
+        return "https://music.yandex.ru/album/%s/track/%s" % (self.album.id, self.id)
+
+    @property
     def lyrics(self):
         if not self._lyrics:
             with pool.pool() as driver:
-                driver.get('https://music.yandex.ru/album/%s/track/%s' % (self.album.id, self._id))
+                driver.get('https://music.yandex.ru/album/%s/track/%s' % (self.album.id, self.id))
                 try:
                     driver.find_element_by_class_name('sidebar-track__outer').find_element_by_css_selector('*').click()
                     self._lyrics = driver.find_element_by_class_name('sidebar-track__lyric-text').text
