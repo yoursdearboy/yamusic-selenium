@@ -31,9 +31,13 @@ class Album:
     def year(self):
         if not self._year:
             with pool.pool() as driver:
-                driver.get("https://music.yandex.ru/album/%s" % self._id)
+                driver.get("https://music.yandex.ru/album/%s" % self.id)
                 self._year = driver.find_element_by_class_name('album-summary__group').text
         return self._year
+
+    @property
+    def link(self):
+        return "https://music.yandex.ru/album/%s" % self.id
 
     @classmethod
     def find(clazz, _id):
