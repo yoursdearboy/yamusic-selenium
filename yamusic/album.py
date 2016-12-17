@@ -1,44 +1,31 @@
-from . import refs, pool
+from .misc import Idable, Findable, find_or_new, \
+                  LazyClass, lazyproperty, \
+                  find_elements_in_scrollpane, seleniumdrived
 
 def find(_id):
-    if _id in refs:
-        return refs[_id]
-    else:
-        return Album(_id)
+    return find_or_new(Album, _id)
 
-class Album:
-    def __init__(self, _id, title=None, artist=None, year=None, songs=[]):
+class Album(Idable, Findable, LazyClass):
+    BASE = "https://music.yandex.ru/album/{id}"
+
+    def __init__(self, _id, title=None, artist=None, year=None, songs=list()):
         self._id = _id
         self._title = title
         self._artist = artist
-        self._songs = songs
         self._year = year
-        refs[_id] = self
+        self._songs = songs
 
-    @property
-    def id(self):
-        return self._id
+    @lazyproperty
+    @seleniumdrived()
+    def title(self, driver):
+        return driver.find_element_by_class_name('album-summary__title').text
 
-    @property
-    def title(self):
-        return self._title
+    @lazyproperty
+    @seleniumdrived()
+    def year(self, driver):
+        return driver.find_element_by_class_name('album-summary__group').text
 
-    @title.setter
-    def title(self, title):
-        self._title = title
-
-    @property
-    def year(self):
-        if not self._year:
-            with pool.pool() as driver:
-                driver.get("https://music.yandex.ru/album/%s" % self.id)
-                self._year = driver.find_element_by_class_name('album-summary__group').text
-        return self._year
-
-    @property
-    def link(self):
-        return "https://music.yandex.ru/album/%s" % self.id
-
-    @classmethod
-    def find(clazz, _id):
-        return find(_id)
+    @lazyproperty
+    @seleniumdrived()
+    def artist(self, driver):
+        return None

@@ -1,7 +1,14 @@
-from . import refs, pool
+from .misc import Idable, Findable, find_or_new, \
+                  LazyClass, lazyproperty, \
+                  find_elements_in_scrollpane, seleniumdrived
 from selenium.common.exceptions import NoSuchElementException
 
-class Song:
+def find(_id):
+    return find_or_new(Song, _id)
+
+class Song(Idable, Findable, LazyClass):
+    BASE = "https://music.yandex.ru/album/{artist.id}/track/{id}"
+
     def __init__(self, _id, title=None, album=None, artist=None, duration=None):
         self._id = _id
         self._title = title
@@ -10,30 +17,31 @@ class Song:
         self._duration = duration
         self._lyrics = None
 
-    @property
-    def id(self):
-        return self._id
+    @lazyproperty
+    @seleniumdrived()
+    def title(self, driver):
+        return None
 
-    @property
-    def album(self):
-        return self._album
+    @lazyproperty
+    @seleniumdrived()
+    def album(self, driver):
+        return None
 
-    @property
-    def title(self):
-        return self._title
+    @lazyproperty
+    @seleniumdrived()
+    def artist(self, driver):
+        return None
 
-    @property
-    def link(self):
-        return "https://music.yandex.ru/album/%s/track/%s" % (self.album.id, self.id)
+    @lazyproperty
+    @seleniumdrived()
+    def duration(self, driver):
+        return None
 
-    @property
-    def lyrics(self):
-        if not self._lyrics:
-            with pool.pool() as driver:
-                driver.get('https://music.yandex.ru/album/%s/track/%s' % (self.album.id, self.id))
-                try:
-                    driver.find_element_by_class_name('sidebar-track__outer').find_element_by_css_selector('*').click()
-                    self._lyrics = driver.find_element_by_class_name('sidebar-track__lyric-text').text
-                except NoSuchElementException:
-                    self._lyrics = None
-        return self._lyrics
+    @lazyproperty
+    @seleniumdrived()
+    def lyrics(self, driver):
+        try:
+            driver.find_element_by_class_name('sidebar-track__outer').find_element_by_css_selector('*').click()
+            return driver.find_element_by_class_name('sidebar-track__lyric-text').text
+        except NoSuchElementException:
+            return None
