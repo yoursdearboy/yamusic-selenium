@@ -1,8 +1,6 @@
 from .misc import Idable, Findable, find_or_new, \
                   LazyClass, lazyproperty, \
                   find_elements_in_scrollpane, seleniumdrived
-from .album import Album
-from .song import Song
 
 def find(_id):
     return find_or_new(Artist, _id)
@@ -10,11 +8,11 @@ def find(_id):
 class Artist(Idable, Findable, LazyClass):
     BASE = "https://music.yandex.ru/artist/{id}"
 
-    def __init__(self, _id, title=None, albums=[], songs=[]):
+    def __init__(self, _id, title=None, albums=None, songs=None):
         self._id = _id
         self._title = title
-        self._albums = albums
-        self._songs = songs
+        self._albums = albums or list()
+        self._songs = songs or list()
 
     @lazyproperty
     @seleniumdrived()
@@ -62,3 +60,6 @@ class Artist(Idable, Findable, LazyClass):
             song.album = process_album(el.find_element_by_class_name('track__album'))
             return song
         return find_elements_in_scrollpane(driver, lambda: driver.find_elements_by_class_name('track'), process)
+
+from .album import Album
+from .song import Song
