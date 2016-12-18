@@ -23,6 +23,7 @@ class Artist(Idable, Findable, LazyClass):
 
     @lazyproperty
     @seleniumdrived("/albums")
+    # TODO: Handle multiple artists
     def albums(self, driver):
         def process(el):
             _id = el.find_element_by_tag_name('a').get_attribute('href').split('/')[-1]
