@@ -1,4 +1,5 @@
 import unittest
+from .misc import make_suite
 from yamusic import Artist, Album, Song
 
 class TestArtist(unittest.TestCase):
@@ -36,10 +37,9 @@ class TestArtist(unittest.TestCase):
       self.assertEqual(song.album.artist, self.artist)
 
 def suite():
-  suite = unittest.TestSuite()
-  testloader = unittest.TestLoader()
-  testnames = testloader.getTestCaseNames(TestArtist)
-  for name in testnames:
-    suite.addTest(TestArtist(name, _id='218095', title="Кровосток", albums_count=13, songs_count=66))
-    suite.addTest(TestArtist(name, _id='9278', title="Limp Bizkit", albums_count=25, songs_count=89))
-  return suite
+  def maker(name):
+    return [
+      TestArtist(name, _id='218095', title="Кровосток", albums_count=13, songs_count=66),
+      TestArtist(name, _id='9278', title="Limp Bizkit", albums_count=25, songs_count=89)
+    ]
+  return make_suite(TestArtist, maker)
