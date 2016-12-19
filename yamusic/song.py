@@ -1,6 +1,6 @@
 from .misc import Idable, Findable, find_or_new, \
                   LazyClass, lazyproperty, \
-                  find_elements_in_scrollpane, seleniumdrived
+                  find_elements_in_scrollpane, seleniumdriven
 from selenium.common.exceptions import NoSuchElementException
 
 def find(_id):
@@ -18,27 +18,27 @@ class Song(Idable, Findable, LazyClass):
         self._lyrics = None
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def title(self, driver):
         return None
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def album(self, driver):
         return None
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def artist(self, driver):
         return None
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def duration(self, driver):
         return None
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def lyrics(self, driver):
         try:
             driver.find_element_by_class_name('sidebar-track__outer').find_element_by_css_selector('*').click()

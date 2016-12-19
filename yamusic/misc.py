@@ -43,14 +43,14 @@ class LazyClass:
 def lazyproperty(fn):
     attr_name = '_' + fn.__name__
     @property
-    def _lazyproperty(self):
-        if hasattr(self, attr_name):
-            value = getattr(self, attr_name)
-            noncheck = value is not None
-            structcheck = (type(value) is not list and type(value) is not dict) or len(value) > 0
-            if noncheck and structcheck:
-                return value
-        value = fn(self)
+    @wraps(fn)
+    def _lazyproperty(self, *args, **kwargs):
+        value = getattr(self, attr_name)
+        noncheck = value is not None
+        structcheck = (type(value) is not list and type(value) is not dict) or len(value) > 0
+        if noncheck and structcheck:
+            return value
+        value = fn(self, *args, **kwargs)
         setattr(self, attr_name, value)
         return value
     return _lazyproperty
@@ -80,22 +80,50 @@ def scroll_by(d, n):
 # Selenium and navigation
 formater = Formatter()
 
-def get_placeholders(tpl):
-    return [t[1] for t in formater.parse(tpl)]
-
-def seleniumdrived(url_tpl=''):
-    def seleniumdrived_decorator(fn):
+def seleniumdriven(url_tpl='', prefetch=True):
+    def seleniumdriven_decorator(fn):
         @wraps(fn)
-        def _seleniumdrived(self):
-            clazz = type(self)
-            with pool.pool() as driver:
-                furl_tpl = url_tpl
-                if furl_tpl[0:4] != 'http' and clazz.BASE is not None:
-                    furl_tpl = ''.join((clazz.BASE, furl_tpl))
-                furl_args = [ (a,reduce(getattr, a.split('.'), self)) for a in get_placeholders(furl_tpl) if a is not None]
-                furl_args = dict(furl_args)
-                furl = formater.format(furl_tpl, **furl_args)
-                driver.get(furl)
-                return fn(self, driver)
-        return _seleniumdrived
-    return seleniumdrived_decorator
+        def _seleniumdriven(self, driver=None, prefetch_others=True):
+            cache_mode = not prefetch_others
+            clazz = self.__class__
+
+            def visit_url(driver, tpl=url_tpl):
+                if tpl[0:4] != 'http' and clazz.BASE is not None:
+                    tpl = ''.join((clazz.BASE, tpl))
+                placeholders = [t[1] for t in formater.parse(tpl)]
+                args = [ (a,reduce(getattr, a.split('.'), self)) for a in placeholders if a is not None]
+                args = dict(args)
+                url = formater.format(tpl, **args)
+                driver.get(url)
+
+            def do_prefetch_others(driver):
+                for met_name in dir(clazz):
+                    if met_name == fn.__name__:
+                        continue
+                    met = getattr(clazz, met_name)
+                    meto = met.fget if type(met) is property else met
+                    other_seleniumdriven = getattr(meto, '_seleniumdriven_prefetch', False)
+                    other_url_tpl = getattr(meto, '_seleniumdriven_url_tpl', None)
+                    if other_seleniumdriven and other_url_tpl == url_tpl:
+                        meto(self, driver=driver, prefetch_others=False)
+
+            def process(driver):
+                if not cache_mode:
+                    visit_url(driver)
+                value = fn(self, driver)
+                if prefetch_others:
+                    do_prefetch_others(driver)
+
+                return value
+
+            if driver is None:
+                with pool.pool() as driver:
+                    return process(driver)
+            else:
+                return process(driver)
+
+        if prefetch:
+            setattr(_seleniumdriven, '_seleniumdriven_prefetch', True)
+        setattr(_seleniumdriven, '_seleniumdriven_url_tpl', url_tpl)
+        return _seleniumdriven
+    return seleniumdriven_decorator

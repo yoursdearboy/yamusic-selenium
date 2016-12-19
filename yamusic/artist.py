@@ -1,6 +1,6 @@
 from .misc import Idable, Findable, find_or_new, \
                   LazyClass, lazyproperty, \
-                  find_elements_in_scrollpane, seleniumdrived
+                  find_elements_in_scrollpane, seleniumdriven
 
 def find(_id):
     return find_or_new(Artist, _id)
@@ -15,12 +15,12 @@ class Artist(Idable, Findable, LazyClass):
         self._songs = songs or list()
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def title(self, driver):
         return driver.find_element_by_class_name('page-artist__title').text
 
     @lazyproperty
-    @seleniumdrived("/albums")
+    @seleniumdriven("/albums")
     # TODO: Handle multiple artists
     def albums(self, driver):
         def process(el):
@@ -36,7 +36,7 @@ class Artist(Idable, Findable, LazyClass):
         return find_elements_in_scrollpane(driver, lambda: driver.find_elements_by_class_name('album'), process)
 
     @lazyproperty
-    @seleniumdrived("/tracks")
+    @seleniumdriven("/tracks")
     def songs(self, driver):
         def process(el):
             def process_trackname(el):

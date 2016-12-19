@@ -1,6 +1,6 @@
 from .misc import Idable, Findable, find_or_new, \
                   LazyClass, lazyproperty, \
-                  find_elements_in_scrollpane, seleniumdrived
+                  find_elements_in_scrollpane, seleniumdriven
 
 def find(_id):
     return find_or_new(Album, _id)
@@ -16,12 +16,12 @@ class Album(Idable, Findable, LazyClass):
         self._songs = songs or list()
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def title(self, driver):
         return driver.find_element_by_class_name('page-album__title').text
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def artist(self, driver):
         el = driver.find_elements_by_css_selector('.album-summary__large > :first-child a')[0]
         _id = el.get_attribute('href').split('/')[-1]
@@ -31,14 +31,14 @@ class Album(Idable, Findable, LazyClass):
         return artist
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven()
     def year(self, driver):
         year = driver.find_elements_by_css_selector('.album-summary__large > :last-child')[0].text
         year = year.split(' ')[0] if year is not None else None
         return year
 
     @lazyproperty
-    @seleniumdrived()
+    @seleniumdriven(prefetch=False)
     def songs(self, driver):
         def process(el):
             def process_trackname(el):
