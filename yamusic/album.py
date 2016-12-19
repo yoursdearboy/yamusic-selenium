@@ -44,7 +44,7 @@ class Album(Idable, Findable, LazyClass):
             def process_trackname(el):
                 _id = el.find_element_by_tag_name('a').get_attribute('href').split('/')[-1]
                 title = el.text
-                song = Song.find(_id)
+                song = Song.find(self.id, _id)
                 song.title = title
                 return song
             def process_trackinfo(el):

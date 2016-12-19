@@ -39,15 +39,6 @@ class Artist(Idable, Findable, LazyClass):
     @seleniumdriven("/tracks")
     def songs(self, driver):
         def process(el):
-            def process_trackname(el):
-                _id = el.find_element_by_tag_name('a').get_attribute('href').split('/')[-1]
-                title = el.text
-                song = Song.find(_id)
-                song.title = title
-                return song
-            def process_trackinfo(el):
-                song.duration = el.text
-                return song
             def process_album(el):
                 _id = el.find_element_by_tag_name('a').get_attribute('href').split('/')[-1]
                 title = el.text
@@ -55,9 +46,19 @@ class Artist(Idable, Findable, LazyClass):
                 album.title = title
                 album.artist = self
                 return album
-            song = process_trackname(el.find_element_by_class_name('track__name'))
+            def process_trackname(el, album):
+                _id = el.find_element_by_tag_name('a').get_attribute('href').split('/')[-1]
+                title = el.text
+                song = Song.find(album.id, _id)
+                song.title = title
+                return song
+            def process_trackinfo(el):
+                song.duration = el.text
+                return song
+            album = process_album(el.find_element_by_class_name('track__album'))
+            song = process_trackname(el.find_element_by_class_name('track__name'), album)
             song = process_trackinfo(el.find_element_by_class_name('track__info'))
-            song.album = process_album(el.find_element_by_class_name('track__album'))
+            song.album = album
             return song
         return find_elements_in_scrollpane(driver, lambda: driver.find_elements_by_class_name('track'), process)
 
