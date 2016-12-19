@@ -1,8 +1,8 @@
 # Yandex Music navigator (using Selenium)
 
-Allows navigating and parsing Yandex Music using Selenium. **No support (and won't be) for downloading!!**
+Allows navigation and parsing Yandex Music using Selenium. **No support (and won't be) for downloading!!**
 
-There is 3 modules: `artist`, `album`, `song`. Each has a so named class and all they are in the root of the package. Modules and classes has `find(id)` method, except Song that requires two arguments: `find(album_id, id)`.
+There are 3 modules: `artist`, `album`, `song`. Each has a so named class and all they are in the root of the package. Modules and classes has `find(id)` method, except Song that requires two arguments: `find(album_id, id)`.
 
 Data are accessible using lazy-loading properties. List of implemented props:
 
