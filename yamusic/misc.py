@@ -14,11 +14,9 @@ class Idable:
 
     @property
     def link(self):
-        clazz = type(self)
-        if clazz.BASE:
-            return "%s/%s" % (clazz.BASE, self.id)
-        else:
-            return null
+        clazz = self.__class__
+        url = format_url(clazz.BASE, self)
+        return url
 
 def find_or_new(clazz, _id):
     _cid = ''.join((clazz.__name__, _id))
@@ -30,6 +28,17 @@ class Findable:
     @classmethod
     def find(clazz, _id):
         return find_or_new(clazz, _id)
+
+# Links templating
+formater = Formatter()
+
+def format_url(tpl, obj):
+    placeholders = [t[1] for t in formater.parse(tpl)]
+    baseargs = [a.split('.')[0] for a in placeholders if a is not None]
+    baseargs = [ (a, getattr(obj, a)) for a in baseargs]
+    baseargs = dict(baseargs)
+    url = formater.format(tpl, **baseargs)
+    return url
 
 # Lazy class and properties
 class LazyClass:
@@ -78,8 +87,6 @@ def scroll_by(d, n):
     d.execute_script("window.scrollBy(0,%s)" % n);
 
 # Selenium and navigation
-formater = Formatter()
-
 def seleniumdriven(url_tpl='', prefetch=True):
     def seleniumdriven_decorator(fn):
         @wraps(fn)
@@ -90,10 +97,7 @@ def seleniumdriven(url_tpl='', prefetch=True):
             def visit_url(driver, tpl=url_tpl):
                 if tpl[0:4] != 'http' and clazz.BASE is not None:
                     tpl = ''.join((clazz.BASE, tpl))
-                placeholders = [t[1] for t in formater.parse(tpl)]
-                args = [ (a,reduce(getattr, a.split('.'), self)) for a in placeholders if a is not None]
-                args = dict(args)
-                url = formater.format(tpl, **args)
+                url = format_url(tpl, self)
                 driver.get(url)
 
             def do_prefetch_others(driver):
